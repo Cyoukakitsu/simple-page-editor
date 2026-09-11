@@ -15,7 +15,7 @@ NCDC のフロントエンド採用課題。対象の後端リポジトリ：[nc
 - React 19 + TypeScript + Vite
 - Tailwind CSS v4（`@tailwindcss/vite`、`tailwind.config.js` なし。デザイン仕様の色/フォント値はここに集約する）
 - TanStack Query（サーバー状態）+ TanStack Router（ファイルベースルーティング、`src/routes/`）
-- zod（API レスポンスの実行時検証。型だけで信用しない）
+- zod（予定。API レイヤーを実装する際に、型だけで信用せずレスポンスを実行時検証する方針。まだ `package.json` には入っていない）
 - Vitest + React Testing Library + MSW（テスト）
 - sonner（トースト通知）
 - 状態管理ライブラリ（Zustand 等）は意図的に不採用。TanStack Query でサーバー状態、ローカル UI 状態はコンポーネントの `useState` で十分という判断
@@ -38,14 +38,14 @@ pnpm run build       # typecheck + 本番ビルド
 ## ディレクトリ構成の方針
 
 - **feature ベースで分割**する。`components/` `hooks/` のような種類別の大部屋は作らない
-- `src/api/` — バックエンドの各エンドポイントに対応する薄いラッパー（fetch + zod 検証）。TanStack Query の `queryFn`/`mutationFn` はここの関数を渡すだけにする
+- `src/api/` — バックエンドの各エンドポイントに対応する薄いラッパー（fetch + zod 検証）を置く予定。TanStack Query の `queryFn`/`mutationFn` はここの関数を渡すだけにする。**現時点ではフォルダのみで中身は未実装**（UI のコンポーネント構成を先に固めてから、必要なデータの形に合わせて書く方針）
 - `src/features/*` — 画面/機能単位のコンポーネントと、そのfeature専用の hooks
 - `src/components/ui/` — 複数 feature から使う汎用コンポーネント（ボタン等）
 - 型はそれを生み出すモジュールに置く。`src/types/` のような型だけを集めたフォルダは作らない（誰が何のために定義したか分からなくなるため）
 
 ## 命名・ドメイン用語
 
-- 後端のエンティティ名は `Content` だが、UI・ドメイン層のコードでは **`Page`** を使う（`PageList`、`PageEditor` のように）。`Content` という名前は `src/api/` の中だけに閉じ込める
+- 後端のエンティティ名は `Content` だが、UI・ドメイン層のコードでは **`Page`** を使う（`PageList`、`PageEditor` のように）。`Content` という名前は `src/api/` の中だけに閉じ込める（この命名規則はまだ適用対象のコードがない。API レイヤー実装時に忘れないこと）
 - 詳細・理由は [CONTEXT.md](./CONTEXT.md) を参照
 
 ## コードコメントの言語
@@ -56,9 +56,18 @@ pnpm run build       # typecheck + 本番ビルド
 ## テスト
 
 - 課題要件で「有効なテストを 1 つ以上」が必須。`src/**/*.test.ts(x)` に配置
-- UI コンポーネントのテストは実装が固まってから追加する（現時点では `src/api/` のデータ層のみテスト済み）
+- **現時点でテストは 0 件、要件はまだ満たしていない**。API レイヤー実装時に満たす予定
+
+## 現在の状況（2026-09-11 時点）
+
+UI のコンポーネント構成・スタイル方針をまだ決めていない。次にやることは：
+
+1. UI のスタイル方針（Tailwind へのデザイントークン反映、コンポーネント分割）を決める
+2. それに合わせて `src/api/`（データ層、zod によるレスポンス検証、テスト）を実装する
 
 ## Git
 
-- 現在の作業ブランチ: `setup/scaffold-and-tech-stack`（`main` はまだ存在しない。このブランチが一段落してから作る）
+- リモート: `origin` = https://github.com/Cyoukakitsu/simple-page-editor
+- `main` は `feat/01-scaffold` の内容をそのまま push したもの（最初の骨架コミットのため、対比するものがなく直接 push）
+- 現在の作業ブランチ: `feat/02-harness-docs`（`main` から分岐、PR 提出予定）
 - コミットは意味のある単位でまとめる。ユーザーから明示的に頼まれない限り commit や push は行わない
