@@ -40,4 +40,15 @@ describe('Button', () => {
 
     expect(screen.getByRole('button', { name: 'Edit' })).toHaveClass(expectedClass)
   })
+
+  it('icon を渡すとラベルと一緒に表示される', () => {
+    render(
+      <Button variant="primary" icon={<svg data-testid="icon" />}>
+        Edit
+      </Button>,
+    )
+
+    const button = screen.getByRole('button', { name: 'Edit' })
+    expect(button).toContainElement(screen.getByTestId('icon'))
+  })
 })
