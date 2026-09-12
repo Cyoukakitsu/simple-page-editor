@@ -55,19 +55,20 @@ pnpm run build       # typecheck + 本番ビルド
 
 ## テスト
 
-- 課題要件で「有効なテストを 1 つ以上」が必須。`src/**/*.test.ts(x)` に配置
-- **現時点でテストは 0 件、要件はまだ満たしていない**。API レイヤー実装時に満たす予定
+- 課題要件で「有効なテストを 1 つ以上」が必須
+- テストファイルはソースファイルと**同じディレクトリに co-locate** する（`Button.tsx` の隣に `Button.test.tsx`）。`__tests__/` のような鏡合わせのフォルダは作らない
+- `src/test/setup.ts` は Vitest のグローバル設定ファイルであり、「テストを置く場所」ではない（名前が紛らわしいだけ）
+- 新機能の実装は TDD（Red-Green-Refactor）で進める
 
-## 現在の状況（2026-09-11 時点）
+## 現在の状況（2026-09-12 時点）
 
-UI のコンポーネント構成・スタイル方針をまだ決めていない。次にやることは：
-
-1. UI のスタイル方針（Tailwind へのデザイントークン反映、コンポーネント分割）を決める
-2. それに合わせて `src/api/`（データ層、zod によるレスポンス検証、テスト）を実装する
+- デザイントークン（配色・文字サイズ・ボタン状態色）は `src/index.css` に実装済み
+- `src/components/ui/Button.tsx` 実装済み（primary/secondary/normal, icon 対応, TDD でテスト済み）
+- 次は Sidebar・PageList などの機能コンポーネントを同様に実装し、その後 `src/api/`（データ層、zod によるレスポンス検証）を実装する
 
 ## Git
 
 - リモート: `origin` = https://github.com/Cyoukakitsu/simple-page-editor
 - `main` は `feat/01-scaffold` の内容をそのまま push したもの（最初の骨架コミットのため、対比するものがなく直接 push）
-- 現在の作業ブランチ: `feat/02-harness-docs`（`main` から分岐、PR 提出予定）
+- 現在の作業ブランチ: `feat/ui-button`（`main` から分岐、PR 提出予定）
 - コミットは意味のある単位でまとめる。ユーザーから明示的に頼まれない限り commit や push は行わない
