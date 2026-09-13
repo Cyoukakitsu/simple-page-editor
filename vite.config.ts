@@ -15,5 +15,7 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: './src/test/setup.ts',
+    // .env は gitignore 対象なので、テストが手元の .env の有無に左右されないよう固定する
+    env: { VITE_API_BASE_URL: 'http://localhost:3000' },
   },
 })
