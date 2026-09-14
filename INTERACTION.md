@@ -19,7 +19,7 @@ Sidebar のリスト項目クリック＝そのページを選択して MainArea
 | List Edit Mode | `02_menu_edit.png` | Sidebar 下部の「Edit」ボタンで開始。各行に削除アイコン、下部ボタンが「New page」「Done」に変わる |
 | Title Edit | `03_title_edit.png` | MainArea のタイトル横「Edit」で開始。タイトルが入力欄になり、そのボタンが「Cancel」「Save」に変わる |
 | Body Edit | `04_text_edit.png` | MainArea の本文横「Edit」で開始。本文がテキストエリアになり、そのボタンが「Cancel」「Save」に変わる |
-| Empty | （モックアップ無し） | ページ未選択のとき。MainArea に「ページを選択してください」を出す。初期表示と、**選択中のページを削除した直後**に到達する。モックアップには無いが、到達可能な状態なので用意した（`src/routes/index.tsx`） |
+| Empty | （モックアップ無し） | ページ未選択のとき。MainArea に「ページを選択してください」を出す。初期表示と、**選択中のページを削除した直後**に到達する。モックアップには無いが、到達可能な状態なので用意した（`src/App.tsx`） |
 
 Title Edit と Body Edit は完全に独立していて、**両方を同時に編集中にできる**。片方を編集中でも、もう片方は通常の Edit ボタンのまま残る（`03_title_edit.png` ではタイトルが入力欄・本文側は Edit ボタン、`04_text_edit.png` ではその逆になっているのが確認できる）。
 
@@ -67,7 +67,7 @@ Title Edit と Body Edit は完全に独立していて、**両方を同時に�
 
 ## API マッピング
 
-**この節は実装済みの挙動ではなく、`src/api/` を書くときの設計。** 現時点の UI は `src/routes/__root.tsx` の仮データ（`samplePages`）とローカル state で動いていて、API は一切呼んでいない。
+**この節は実装済みの挙動ではなく、`src/api/` を書くときの設計。** 現時点の UI は `src/App.tsx` の仮データ（`samplePages`）とローカル state で動いていて、API は一切呼んでいない。
 
 | 操作 | エンドポイント | 備考 |
 |---|---|---|
