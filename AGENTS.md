@@ -18,7 +18,7 @@ NCDC のフロントエンド採用課題。対象の後端リポジトリ：[nc
 - Tailwind CSS v4（`@tailwindcss/vite`、`tailwind.config.js` なし。デザイン仕様の色/フォント値はここに集約する）
 - TanStack Query（サーバー状態）
 - ルーティングライブラリは使わない（画面が1つだけのため。TanStack Router を一度導入したが削除した）
-- zod（予定。API レイヤーを実装する際に、型だけで信用せずレスポンスを実行時検証する方針。まだ `package.json` には入っていない）
+- zod（API レスポンスの実行時検証。型だけで信用せず、`src/api/` で検証してから外に出す）
 - Vitest + React Testing Library + MSW（テスト）
 - sonner（トースト通知）
 - 状態管理ライブラリ（Zustand 等）は意図的に不採用。TanStack Query でサーバー状態、ローカル UI 状態はコンポーネントの `useState` で十分という判断
@@ -41,7 +41,7 @@ pnpm run build       # typecheck + 本番ビルド
 ## ディレクトリ構成の方針
 
 - **feature ベースで分割**する。`components/` `hooks/` のような種類別の大部屋は作らない
-- `src/api/` — バックエンドの各エンドポイントに対応する薄いラッパー（fetch + zod 検証）を置く予定。TanStack Query の `queryFn`/`mutationFn` はここの関数を渡すだけにする。**現時点ではフォルダのみで中身は未実装**（UI のコンポーネント構成を先に固めてから、必要なデータの形に合わせて書く方針）
+- `src/api/` — バックエンドの各エンドポイントに対応する薄いラッパー（fetch + zod 検証）。TanStack Query の `queryFn`/`mutationFn` はここの関数を渡すだけにする
 - `src/features/*` — 画面/機能単位のコンポーネントと、そのfeature専用の hooks
 - `src/components/ui/` — 複数 feature から使う汎用コンポーネント（ボタン等）
 - 画像リソースはリポジトリ直下の `icon/`（`Design/img/icon` と同じもの）を使い、Vite の URL import で読む（`import editIconUrl from "../../../icon/edit.svg"`）。`public/` は置いていない。SVG は塗り色が埋め込み済みなので `<img>` で貼るだけでよく、色を変えたい場合のみ CSS filter を使う（`Sidebar.tsx` の削除アイコン参照）
@@ -49,7 +49,7 @@ pnpm run build       # typecheck + 本番ビルド
 
 ## 命名・ドメイン用語
 
-- 後端のエンティティ名は `Content` だが、UI・ドメイン層のコードでは **`Page`** を使う（`PageEditor`、`Sidebar` の `Page` 型のように）。`Content` という名前は `src/api/` の中だけに閉じ込める（API レイヤー実装時に忘れないこと）
+- 後端のエンティティ名は `Content` だが、UI・ドメイン層のコードでは **`Page`** を使う（`PageEditor`、`Sidebar` の `Page` 型のように）。`Content` という名前は `src/api/` の中だけに閉じ込める
 - 詳細・理由は [CONTEXT.md](./CONTEXT.md) を参照
 
 ## コードコメントの言語
@@ -62,9 +62,9 @@ pnpm run build       # typecheck + 本番ビルド
 - 課題要件で「有効なテストを 1 つ以上」が必須
 - テストファイルはソースファイルと**同じディレクトリに co-locate** する（`Button.tsx` の隣に `Button.test.tsx`）。`__tests__/` のような鏡合わせのフォルダは作らない
 - `src/test/setup.ts` は Vitest のグローバル設定ファイルであり、「テストを置く場所」ではない（名前が紛らわしいだけ）
-- **現状のテスト方針**: 汎用 UI コンポーネント（`src/components/ui/`）は TDD で書く（`Button.test.tsx`）。`src/features/*` はデザイン追従のイテレーションを優先していて、現時点ではテストを置いていない（`Sidebar` は一度書いたものを意図的に削除した）。ロジックが入る `src/api/` 以降は TDD に戻す
+- **現状のテスト方針**: 汎用 UI コンポーネント（`src/components/ui/`）は TDD で書く（`Button.test.tsx`）。`src/features/*` はデザイン追従のイテレーションを優先していて、現時点ではテストを置いていない（`Sidebar` は一度書いたものを意図的に削除した）。ロジックが入る `src/api/` は TDD で書き、MSW でバックエンドの応答を差し替えてテストする（`pageApi.test.ts`）
 
-## 現在の状況（2026-09-13 時点）
+## 現在の状況（2026-09-15 時点）
 
 - デザイントークン（配色・文字サイズ・ボタン状態色）は `src/index.css` に実装済み。design-5/6 の値は全て反映済みで、選択中メニューの文字色 `#32A8F8` だけは色板ではなく `01_default.png` の注釈が出典（`--color-text-focus`）
 - `src/components/ui/Button.tsx` 実装済み（variant: primary/secondary/normal、width: wide 90px / square 40px、アイコン24px + ラベル10px の縦積み、TDD でテスト済み）
@@ -72,11 +72,16 @@ pnpm run build       # typecheck + 本番ビルド
 - `src/features/page-editor/` 実装済み（`PageEditor` が組み立て、`TitleSection` / `BodySection` が各々独立した編集状態を持つ）
 - 画面の切り替え: ページ選択は URL ではなくローカル state で行う。`src/App.tsx` が選択中なら `PageEditor`、未選択なら空状態を描画する
 - レイアウトは 4枚のモックアップと DesignSpec の実測値に合わせ込み済み（左コンテンツ + 右 90px ボタン列の2カラム、カードは高さいっぱい）
-- **UI は `src/App.tsx` 内の仮データ（`samplePages`）で動いている。次は `src/api/`（データ層、zod によるレスポンス検証）を実装して、この仮データを実 API に差し替える**
+- `src/api/pageApi.ts` 実装済み（`fetchPages` / `createPage` / `updatePage` / `deletePage`、zod 検証、MSW でテスト済み）。ただし UI からはまだ呼んでいない
+- **UI は `src/App.tsx` 内の仮データ（`samplePages`）で動いている。次は TanStack Query の hooks を作り、この仮データを実 API に差し替える**（決定済み: 更新・作成・削除の成功後は invalidate で一覧を再取得、API エラーは sonner のトーストで通知）
+- API 接続時に決めること: 初期表示でページを選択するか（現状は仮データの3件目を選択している）
+
+## README
+
+- 評価者が読む提出物。**実装済みの内容だけを書き**、進捗・今後の予定・途中経過は書かない（それらは PR の説明と、このファイルの「現在の状況」に書く）
 
 ## Git
 
 - リモート: `origin` = https://github.com/Cyoukakitsu/simple-page-editor
-- `main` は `feat/01-scaffold` の内容をそのまま push したもの（最初の骨架コミットのため、対比するものがなく直接 push）
-- 現在の作業ブランチ: `feat/ui-button`（`main` から分岐、PR 提出予定）
+- 作業ごとに最新の `main` からブランチを切り、PR でマージする。マージ済みのブランチに追加でコミットしない
 - コミットは意味のある単位でまとめる。ユーザーから明示的に頼まれない限り commit や push は行わない
