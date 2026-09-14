@@ -37,8 +37,9 @@ export function BodySection({ body, onSave }: BodySectionProps) {
     );
   }
 
-  // 空白だけの本文を弾くため trim() してから長さを見る
-  const isValid = draft.trim().length >= 10 && draft.trim().length <= 2000;
+  // 空白だけの本文を弾くため trim() してから長さを見る。カウンタも同じ値を出して判定と食い違わないようにする
+  const length = draft.trim().length;
+  const isValid = length >= 10 && length <= 2000;
 
   return (
     <div className="flex min-h-0 flex-1 gap-5">
@@ -49,7 +50,7 @@ export function BodySection({ body, onSave }: BodySectionProps) {
           onChange={(e) => setDraft(e.target.value)}
         />
         <p className="mt-1 text-caption text-text-muted">
-          {draft.length}/2000文字 (10〜2000文字で入力してください)
+          {length}/2000文字 (10〜2000文字で入力してください)
         </p>
       </div>
       <div className="flex w-22.5 shrink-0 gap-2.5">
