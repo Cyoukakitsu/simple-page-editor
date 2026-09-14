@@ -14,9 +14,6 @@ dist-ssr
 .env
 coverage
 
-# TanStack Router の自動生成コード
-src/routeTree.gen.ts
-
 # デザイン参照資料（バックエンドリポジトリ側に原本があるため重複管理しない）
 /Design/
 

@@ -16,7 +16,8 @@ NCDC のフロントエンド採用課題。対象の後端リポジトリ：[nc
 
 - React 19 + TypeScript + Vite
 - Tailwind CSS v4（`@tailwindcss/vite`、`tailwind.config.js` なし。デザイン仕様の色/フォント値はここに集約する）
-- TanStack Query（サーバー状態）+ TanStack Router（ファイルベースルーティング、`src/routes/`）
+- TanStack Query（サーバー状態）
+- ルーティングライブラリは使わない（画面が1つだけのため。TanStack Router を一度導入したが削除した）
 - zod（予定。API レイヤーを実装する際に、型だけで信用せずレスポンスを実行時検証する方針。まだ `package.json` には入っていない）
 - Vitest + React Testing Library + MSW（テスト）
 - sonner（トースト通知）
@@ -54,7 +55,7 @@ pnpm run build       # typecheck + 本番ビルド
 ## コードコメントの言語
 
 - ハンドで書くコメントは**日本語**で統一する（このプロジェクトの成果物が日本語話者向けのため）
-- Vite/TanStack Router などツールが自動生成したファイル・コメント（英語）はそのまま変更しない
+- Vite などツールが自動生成したファイル・コメント（英語）はそのまま変更しない
 
 ## テスト
 
@@ -69,9 +70,9 @@ pnpm run build       # typecheck + 本番ビルド
 - `src/components/ui/Button.tsx` 実装済み（variant: primary/secondary/normal、width: wide 90px / square 40px、アイコン24px + ラベル10px の縦積み、TDD でテスト済み）
 - `src/features/sidebar/Sidebar.tsx` 実装済み（一覧表示・選択・列表編集モードの削除／New page、確認ダイアログ付き）。**`createdAt` 降順のソートは呼び出し側ではなく Sidebar の内部で行う**（CONTEXT.md が並び順を Sidebar という用語の性質として定義しているため、呼び出し側が忘れられる形にしない）
 - `src/features/page-editor/` 実装済み（`PageEditor` が組み立て、`TitleSection` / `BodySection` が各々独立した編集状態を持つ）
-- ルーティング: ページ選択は URL ではなくローカル state で切り替えるため、ルートは `/`（`src/routes/index.tsx` ＝ 未選択時の空状態）のみ。`__root.tsx` はページ未選択のときだけ `<Outlet />` を描画する。**`<Outlet />` を消すとルートツリーが何も描画しなくなる**（一度やらかしている）
+- 画面の切り替え: ページ選択は URL ではなくローカル state で行う。`src/App.tsx` が選択中なら `PageEditor`、未選択なら空状態を描画する
 - レイアウトは 4枚のモックアップと DesignSpec の実測値に合わせ込み済み（左コンテンツ + 右 90px ボタン列の2カラム、カードは高さいっぱい）
-- **UI は `src/routes/__root.tsx` 内の仮データ（`samplePages`）で動いている。次は `src/api/`（データ層、zod によるレスポンス検証）を実装して、この仮データを実 API に差し替える**
+- **UI は `src/App.tsx` 内の仮データ（`samplePages`）で動いている。次は `src/api/`（データ層、zod によるレスポンス検証）を実装して、この仮データを実 API に差し替える**
 
 ## Git
 

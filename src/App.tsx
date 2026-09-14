@@ -1,8 +1,7 @@
-import { Outlet, createRootRoute } from "@tanstack/react-router";
 import { useState } from "react";
 
-import { PageEditor } from "../features/page-editor/PageEditor";
-import { Sidebar } from "../features/sidebar/Sidebar";
+import { PageEditor } from "./features/page-editor/PageEditor";
+import { Sidebar } from "./features/sidebar/Sidebar";
 
 // 動作確認用の仮データ。src/api 実装後は GET /content の結果に置き換える。
 const samplePages = [
@@ -26,11 +25,7 @@ const samplePages = [
   },
 ];
 
-export const Route = createRootRoute({
-  component: RootLayout,
-});
-
-function RootLayout() {
+export function App() {
   const [pages, setPages] = useState(samplePages);
   const [selectedId, setSelectedId] = useState<number | null>(
     samplePages[2].id,
@@ -76,12 +71,14 @@ function RootLayout() {
         />
       </div>
       <div className="flex flex-1 flex-col px-10 pt-7.5">
-        {/* ページ未選択のときはルート側（index.tsx）の空状態を出す */}
         <div className="min-h-0 flex-1">
           {selectedPage ? (
             <PageEditor page={selectedPage} onSave={handleSave} />
           ) : (
-            <Outlet />
+            // ページ未選択の空状態（初期表示と、選択中のページを削除した直後）
+            <div className="flex h-full items-center justify-center rounded-2xl bg-bg-canvas text-body text-text-muted">
+              ページを選択してください
+            </div>
           )}
         </div>
         <footer className="flex h-15 items-center justify-between text-caption text-text">
