@@ -24,12 +24,8 @@
 
 - テストコードが1つ以上ある
 - タイトル: 1〜50文字、本文: 10〜2000文字のバリデーションが実装されている
-- `npm run typecheck` / `npm run test` / `npm run lint` が通る
+- `pnpm run typecheck` / `pnpm run test` / `pnpm run lint` が通る
 
 ## 採点履歴
 
 <!-- 採点するたびに下に追記していく。古い記録は消さない -->
-
-### 未採点
-
-まだ UI 実装前のため、項目2・3・4・5・6 は評価対象のコードがほぼ存在しない。API 層（`src/api/pageApi.ts`）とプロジェクト構成のみ確認可能。
