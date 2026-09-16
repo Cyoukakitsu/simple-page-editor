@@ -10,7 +10,8 @@ type Page = {
 
 type PageEditorProps = {
   page: Page;
-  onSave: (patch: { title?: string; body?: string }) => void;
+  // 保存が成功したら resolve、失敗したら reject する。各セクションは成功時だけ編集を終える
+  onSave: (patch: { title?: string; body?: string }) => Promise<unknown>;
 };
 
 export function PageEditor({ page, onSave }: PageEditorProps) {

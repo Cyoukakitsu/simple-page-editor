@@ -19,7 +19,7 @@ Sidebar のリスト項目クリック＝そのページを選択して MainArea
 | List Edit Mode | `02_menu_edit.png` | Sidebar 下部の「Edit」ボタンで開始。各行に削除アイコン、下部ボタンが「New page」「Done」に変わる |
 | Title Edit | `03_title_edit.png` | MainArea のタイトル横「Edit」で開始。タイトルが入力欄になり、そのボタンが「Cancel」「Save」に変わる |
 | Body Edit | `04_text_edit.png` | MainArea の本文横「Edit」で開始。本文がテキストエリアになり、そのボタンが「Cancel」「Save」に変わる |
-| Empty | （モックアップ無し） | ページ未選択のとき。MainArea に「ページを選択してください」を出す。**選択中のページを削除した直後**に到達する（初期表示でページを選択するかは API 接続時に決める）。モックアップには無いが、到達可能な状態なので用意した（`src/App.tsx`） |
+| Empty | （モックアップ無し） | ページ未選択のとき。MainArea に「ページを選択してください」を出す。**初期表示**（ページを自動選択しない決定）と、**選択中のページを削除した直後**に到達する。モックアップには無いが、到達可能な状態なので用意した（`src/App.tsx`） |
 
 Title Edit と Body Edit は完全に独立していて、**両方を同時に編集中にできる**。片方を編集中でも、もう片方は通常の Edit ボタンのまま残る（`03_title_edit.png` ではタイトルが入力欄・本文側は Edit ボタン、`04_text_edit.png` ではその逆になっているのが確認できる）。
 
@@ -32,14 +32,17 @@ Title Edit と Body Edit は完全に独立していて、**両方を同時に�
   --(下部「Edit」ボタン click)--> [List Edit Mode]
 
 [List Edit Mode]
-  --(各行の削除アイコン click)--> 確認ダイアログ表示 → OK なら DELETE /content/:id 実行 → リストから除去（[List Edit Mode] のまま）
+  --(各行の削除アイコン click)--> 確認ダイアログ表示 → OK なら DELETE /content/:id 実行 → リストから除去してトースト「ページを削除しました」（[List Edit Mode] のまま）
                                   ※消したのが選択中のページだった場合、MainArea は [Empty] になる
-  --(「New page」click)--> 確認ダイアログ表示 → OK なら POST /content で空ページ作成 → リストに追加（[List Edit Mode] のまま）
+  --(「New page」click)--> POST /content で空ページ作成 → リストに追加して選択（[List Edit Mode] のまま）
+                           → トースト「新しいページを作成しました」＋「取り消す」→ click で DELETE /content/:id
   --(「Done」click)--> [Default]
 ```
 
 - 要件文書の「メニューの下の『＋』ボタン」＝設計上の「New page」ボタン、要件文書の「『－』ボタン」＝設計上の削除アイコン。同一機能として扱う（`CONTEXT.md` 既定）。
-- 削除・New page とも実行前に確認ダイアログを出す（モックアップには存在しないが、破壊的操作／意図しない作成を防ぐため採用する決定）。実装は `window.confirm`、文言は `「{タイトル}」を削除しますか？` / `新しいページを作成しますか？`（タイトルが空の場合は `無題` を表示）。
+- 削除は実行前に確認ダイアログを出す（モックアップには存在しないが、破壊的操作を防ぐため採用する決定）。実装は `window.confirm`、文言は `「{タイトル}」を削除しますか？`（タイトルが空の場合は `無題` を表示）。
+- New page は確認ダイアログを出さず、作成後のトーストで取り消せるようにする（決定事項）。削除は後端に復元 API が無く、再作成すると id と `createdAt` が変わるため、取り消し方式にはしない。
+- API エラーは一覧取得・更新・作成・削除とも sonner のトーストで通知する（`src/lib/queryClient.ts` で一括）。文言は操作によらず「処理に失敗しました。時間をおいて再度お試しください」で統一し、HTTP メソッドやステータスコードは出さない（決定事項。利用者には意味がないため）。成功後は `GET /content` を再取得する。
 
 ### Title / Body Edit（同じパターンを Title と Body それぞれに適用）
 
@@ -50,6 +53,7 @@ Title Edit と Body Edit は完全に独立していて、**両方を同時に�
 [編集中]
   --(「Cancel」click)--> 変更を破棄して [表示中] に戻る（API 呼び出しなし）
   --(「Save」click)--> PUT /content/:id を実行（title または body のみを含む部分更新）→ 成功したら [表示中] に戻る
+                  失敗したら入力を残したまま [編集中] に留まる（エラーはトーストで通知）
 ```
 
 - Title の Save は `{ title }`、Body の Save は `{ body }` のみを送る（DTO 上どちらも optional なので個別更新できる。`content.dto.ts` 参照）。
@@ -67,13 +71,13 @@ Title Edit と Body Edit は完全に独立していて、**両方を同時に�
 
 ## API マッピング
 
-この表のとおり `src/api/pageApi.ts` に実装済み。**ただし UI からはまだ呼んでいない**（現時点の UI は `src/App.tsx` の仮データ `samplePages` とローカル state で動いている）。
+この表のとおり `src/api/pageApi.ts` に実装し、`src/features/pages/usePages.ts` から TanStack Query 経由で呼んでいる。
 
 | 操作 | エンドポイント | 備考 |
 |---|---|---|
 | Sidebar 一覧取得 | `GET /content` | フロントで `createdAt` 降順ソート |
 | ページ選択・詳細表示 | 追加リクエストなし | `GET /content` で取得済みの一覧データ（title/body 含む）をそのまま MainArea に表示する（決定事項） |
-| New page | `POST /content` | body なしで送信 → title/body が `null` のページが作成される（API 層で空文字にそろえる） |
+| New page | `POST /content` | body `{}` で送信 → title/body が `null` のページが作成される（API 層で空文字にそろえる）。body を省くと後端が 500 を返す |
 | 削除 | `DELETE /content/:id` | 成功時 204 |
 | タイトル保存 | `PUT /content/:id` body: `{ title }` | |
 | 本文保存 | `PUT /content/:id` body: `{ body }` | |
@@ -85,10 +89,3 @@ Title Edit と Body Edit は完全に独立していて、**両方を同時に�
 ## 未確定事項（設計稿に無く、実装時に決めるもの）
 
 - レスポンシブ対応は今回のスコープでは対応しない（要件上は必須でなく加点要素のため見送り）
-- `window.confirm` のままでよいか（独自モーダルに置き換えるなら API レイヤー実装後に検討）
-
-以下はコードレビューで「仕様に無い実装」として挙がった、**現状そう実装してあるが仕様としては未確定**のもの:
-
-- MainArea のタイトルも空なら「無題」と表示している。`CONTEXT.md` が「無題」を定義しているのは**サイドバー**についてだけで、MainArea 側は未定義
-- New page 作成後、その新規ページを自動で選択状態にしている。仕様上は「リストに追加」としか書いていない
-- `Button.test.tsx` が Tailwind のクラス名（`bg-brand` 等）を直接アサートしていて、実装詳細に結びついている。別のアサート方法に変えるかは未決

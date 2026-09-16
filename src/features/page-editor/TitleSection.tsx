@@ -8,7 +8,7 @@ import saveIconUrl from "../../../icon/save.svg";
 
 type TitleSectionProps = {
   title: string;
-  onSave: (title: string) => void;
+  onSave: (title: string) => Promise<unknown>;
 };
 
 export function TitleSection({ title, onSave }: TitleSectionProps) {
@@ -61,9 +61,12 @@ export function TitleSection({ title, onSave }: TitleSectionProps) {
           width="square"
           icon={<img src={saveIconUrl} alt="" className="h-6 w-6" />}
           disabled={!isValid}
-          onClick={() => {
-            onSave(draft);
-            setEditing(false);
+          onClick={async () => {
+            // 失敗時は入力を失わないよう編集中のまま残す（エラー通知は queryClient 側）
+            try {
+              await onSave(draft);
+              setEditing(false);
+            } catch {}
           }}
         >
           Save
