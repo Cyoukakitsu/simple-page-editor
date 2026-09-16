@@ -31,7 +31,6 @@ export function Sidebar({
 }: SidebarProps) {
   const [isListEditMode, setIsListEditMode] = useState(false);
 
-  // 並び順は createdAt の降順（CONTEXT.md）。後端の返す順序に依存しないよう、
   // 呼び出し側に任せずここでソートする
   const sortedPages = [...pages].sort((a, b) =>
     b.createdAt.localeCompare(a.createdAt),
@@ -41,12 +40,6 @@ export function Sidebar({
     const label = title === "" ? "無題" : title;
     if (window.confirm(`「${label}」を削除しますか？`)) {
       onDelete(id);
-    }
-  };
-
-  const handleCreate = () => {
-    if (window.confirm("新しいページを作成しますか？")) {
-      onCreate();
     }
   };
 
@@ -67,8 +60,6 @@ export function Sidebar({
             .filter(Boolean)
             .join(" ");
           const isUntitled = page.title === "";
-          // 文字色は必ず1つだけ当てる（text-* を2つ重ねると、どちらが勝つかが
-          // Tailwind の出力順任せになってしまうため）。無題の識別は italic が担う
           const labelClasses = [
             "flex-1 pl-2.5 text-left",
             isUntitled && "italic",
@@ -117,7 +108,7 @@ export function Sidebar({
             <Button
               variant="secondary"
               icon={<img src={plusIconUrl} alt="" className="h-6 w-6" />}
-              onClick={handleCreate}
+              onClick={onCreate}
             >
               New page
             </Button>

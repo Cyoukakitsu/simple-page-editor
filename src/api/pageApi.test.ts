@@ -41,7 +41,8 @@ describe("fetchPages", () => {
 });
 
 describe("createPage", () => {
-  it("ボディなしで POST し、作成されたページを返す", async () => {
+  // ボディを省くと実バックエンドは 500 を返すので、必ず空オブジェクトを送る
+  it("空オブジェクトを POST し、作成されたページを返す", async () => {
     let sentBody: string | undefined;
     server.use(
       http.post(`${BASE_URL}/content`, async ({ request }) => {
@@ -51,7 +52,7 @@ describe("createPage", () => {
     );
 
     await expect(createPage()).resolves.toEqual({ ...content, title: "", body: "" });
-    expect(sentBody).toBe("");
+    expect(sentBody).toBe("{}");
   });
 });
 

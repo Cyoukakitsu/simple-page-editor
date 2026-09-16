@@ -4,7 +4,9 @@ import { z } from "zod";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-// title/body は DB 上 nullable（content.entity.ts）。UI は空文字で「無題」を判定するので空文字にそろえる
+// ---- レスポンスの検証 ----
+// Content 1件の形。ここを通ったものだけを Page として外に出す。
+// title/body は DB 上 nullable だが、UI が空文字で「無題」を判定するので空文字にそろえる
 const contentSchema = z.object({
   id: z.number(),
   title: z.string().nullish().transform((value) => value ?? ""),
@@ -12,6 +14,7 @@ const contentSchema = z.object({
   createdAt: z.string(),
 });
 
+// 検証ルールから型を導く（ルールと型が二重管理にならない）
 export type Page = z.infer<typeof contentSchema>;
 
 async function request(method: string, path: string, body?: object): Promise<unknown> {
@@ -26,17 +29,17 @@ async function request(method: string, path: string, body?: object): Promise<unk
   return res.status === 204 ? undefined : res.json();
 }
 
+// ---- 一覧取得: GET /content ----
 export async function fetchPages(): Promise<Page[]> {
   return z.array(contentSchema).parse(await request("GET", "/content"));
 }
 
-// ボディなしで送ると title/body とも null の新規ページが作られる
+// ---- 作成: POST /content ----
 export async function createPage(): Promise<Page> {
-  return contentSchema.parse(await request("POST", "/content"));
+  return contentSchema.parse(await request("POST", "/content", {}));
 }
 
-// 存在しない id でも後端は 400 ではなく 200 + null を返す（findOneBy の null を undefined と比較しているため）。
-// null は contentSchema を通らないので、ここでエラーとして扱える
+// ---- 更新: PUT /content/:id ----
 export async function updatePage(
   id: number,
   patch: { title?: string; body?: string },
@@ -44,6 +47,7 @@ export async function updatePage(
   return contentSchema.parse(await request("PUT", `/content/${id}`, patch));
 }
 
+// ---- 削除: DELETE /content/:id ----
 export async function deletePage(id: number): Promise<void> {
   await request("DELETE", `/content/${id}`);
 }

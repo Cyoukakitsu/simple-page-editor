@@ -64,7 +64,7 @@ pnpm run build       # typecheck + 本番ビルド
 - 課題要件で「有効なテストを 1 つ以上」が必須
 - テストファイルはソースファイルと**同じディレクトリに co-locate** する（`Button.tsx` の隣に `Button.test.tsx`）。`__tests__/` のような鏡合わせのフォルダは作らない
 - `src/test/setup.ts` は Vitest のグローバル設定ファイルであり、「テストを置く場所」ではない（名前が紛らわしいだけ）
-- **現状のテスト方針**: 汎用 UI コンポーネント（`src/components/ui/`）は TDD で書く（`Button.test.tsx`）。`src/features/*` はデザイン追従のイテレーションを優先していて、現時点ではテストを置いていない（`Sidebar` は一度書いたものを意図的に削除した）。ロジックが入る `src/api/` は TDD で書き、MSW でバックエンドの応答を差し替えてテストする（`pageApi.test.ts`）
+- **現状のテスト方針**: 汎用 UI コンポーネント（`src/components/ui/`）は TDD で書く（`Button.test.tsx`。variant ごとの見た目はクラス名をアサートして確かめる）。`src/features/*` はデザイン追従のイテレーションを優先していて、現時点ではテストを置いていない（`Sidebar` は一度書いたものを意図的に削除した）。ロジックが入る `src/api/` は TDD で書き、MSW でバックエンドの応答を差し替えてテストする（`pageApi.test.ts`）
 
 ## 現在の状況（2026-09-15 時点）
 
@@ -73,16 +73,16 @@ pnpm run build       # typecheck + 本番ビルド
 ### 完了
 
 - デザイントークン（`src/index.css`）、`Button`、`Sidebar`、`PageEditor`、2カラムレイアウト（4枚のモックアップと DesignSpec の実測値に合わせ込み済み）
-- `src/api/pageApi.ts`（zod 検証、MSW でテスト済み）。UI からはまだ呼んでいない
+- `src/api/pageApi.ts`（zod 検証、MSW でテスト済み）
+- 実 API への接続（TanStack Query は `src/features/pages/usePages.ts` に集約し、`src/App.tsx` は選択状態とレイアウトだけを持つ）。エラートースト、New page の取り消しトースト、初期表示は未選択
 
 ### 次にやること
 
-- TanStack Query の hooks を作り、`src/App.tsx` の仮データ（`samplePages`）を実 API に差し替える。更新・作成・削除の成功後は invalidate で一覧を再取得し、API エラーは sonner のトーストで通知する（ここまで決定済み）
+- `QUALITY_SCORE.md` による自己採点（実バックエンドでの一覧・保存・作成と取り消し・保存失敗時の動作は確認済み）
 
 ### 未決定
 
-- 初期表示でページを選択するか（現状は仮データの3件目を選択している）
-- `window.confirm` を独自モーダルに置き換えるか
+- なし
 
 ## README
 
