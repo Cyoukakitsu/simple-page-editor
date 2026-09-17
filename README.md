@@ -54,6 +54,7 @@ pnpm run dev
 | TanStack Query | サーバー状態 | 取得・キャッシュ・更新後の再取得を `useEffect` で手書きせずに済む |
 | zod | API レスポンスの検証 | TypeScript の型は実行時に消えるため、外部から来るデータを境界で検証する |
 | Vitest + Testing Library + MSW | テスト | Vite の設定をそのまま共有できる。MSW はネットワーク層で差し替えるので、本番と同じ `fetch` のコードをテストできる |
+| sonner | トースト通知 | 削除・作成の結果と API エラーを画面を塞がずに伝えるため。追加の状態を持たずに済み、作成直後の「取り消す」のようなアクション付き通知も出せる |
 | oxlint | Lint | 設定がほぼ不要で高速 |
 | pnpm | パッケージ管理 | npm より高速でディスク効率が良い。`package.json` に宣言していないパッケージを import できないため、宣言漏れの依存に気づける |
 
@@ -75,7 +76,7 @@ src/
 │   ├── sidebar/      ページ一覧・選択・一覧編集モード
 │   └── page-editor/  タイトル・本文の表示と編集（編集状態と保存は useEditSection に集約）
 ├── components/ui/    複数の機能から使う汎用部品（Button）
-├── lib/              QueryClient など
+├── lib/              QueryClient（エラー通知の集約）
 └── App.tsx           画面全体のレイアウトと、選択中のページなどの状態
 ```
 
