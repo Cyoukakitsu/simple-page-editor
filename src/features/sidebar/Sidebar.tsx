@@ -45,12 +45,12 @@ export function Sidebar({
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center gap-1 pt-7.5 pb-5 pl-10">
+      <div className="flex items-center gap-1 pt-7.5 pb-5 pl-4 md:pl-10">
         <img src={logoIconUrl} alt="" className="h-8 w-8" />
         <span className="text-title font-bold">ServiceName</span>
       </div>
 
-      <ul className="flex-1 overflow-auto pl-10">
+      <ul className="flex-1 overflow-auto pl-4 md:pl-10">
         {sortedPages.map((page) => {
           const isSelected = page.id === selectedId;
           const rowClasses = [
@@ -61,7 +61,7 @@ export function Sidebar({
             .join(" ");
           const isUntitled = page.title === "";
           const labelClasses = [
-            "flex-1 pl-2.5 text-left",
+            "min-w-0 flex-1 truncate pl-2.5 text-left",
             isUntitled && "italic",
             isSelected
               ? "text-text-focus font-bold"
@@ -100,7 +100,7 @@ export function Sidebar({
 
       <div
         className={`flex h-15 items-center bg-bg-canvas pr-2.5 ${
-          isListEditMode ? "justify-between pl-10" : "justify-end"
+          isListEditMode ? "justify-between pl-4 md:pl-10" : "justify-end"
         }`}
       >
         {isListEditMode ? (

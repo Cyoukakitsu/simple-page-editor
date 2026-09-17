@@ -16,7 +16,7 @@ type PageEditorProps = {
 
 export function PageEditor({ page, onSave }: PageEditorProps) {
   return (
-    <div className="flex h-full flex-col gap-5 rounded-2xl bg-bg-canvas p-7.5">
+    <div className="flex h-full flex-col gap-2.5 rounded-2xl bg-bg-canvas p-4 md:gap-5 md:p-7.5">
       <TitleSection
         key={`title-${page.id}`}
         title={page.title}

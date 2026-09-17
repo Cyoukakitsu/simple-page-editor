@@ -46,6 +46,7 @@ pnpm run build       # typecheck + 本番ビルド
 - `src/features/*` — 画面/機能単位のコンポーネントと、そのfeature専用の hooks
 - `src/components/ui/` — 複数 feature から使う汎用コンポーネント（ボタン等）
 - CONTEXT.md が用語の性質として定義した振る舞いは、その用語のコンポーネントの内部で実装する（例: `createdAt` 降順のソートは呼び出し側ではなく `Sidebar` の中。呼び出し側が忘れられる形にしない）
+- **同じ判断を2か所に書かない**。同型のコンポーネントが増えたら、共通の振る舞いは feature 内の hook に、共通の見た目は feature 内の小さなコンポーネントに寄せる（例: タイトル・本文の編集状態と保存は `useEditSection`、Cancel/Save と Edit ボタンは `EditActions`）。書き分けると、片方だけ直し忘れたときに**両方が同じバグを持つ**（実際にバリデーションの trim 漏れがそれで起きた）
 - 画像リソースはリポジトリ直下の `icon/`（`Design/img/icon` と同じもの）を使い、Vite の URL import で読む（`import editIconUrl from "../../../icon/edit.svg"`）。`public/` は置いていない。SVG は塗り色が埋め込み済みなので `<img>` で貼るだけでよく、色を変えたい場合のみ CSS filter を使う（`Sidebar.tsx` の削除アイコン参照）
 - 型はそれを生み出すモジュールに置く。`src/types/` のような型だけを集めたフォルダは作らない（誰が何のために定義したか分からなくなるため）
 
@@ -64,9 +65,9 @@ pnpm run build       # typecheck + 本番ビルド
 - 課題要件で「有効なテストを 1 つ以上」が必須
 - テストファイルはソースファイルと**同じディレクトリに co-locate** する（`Button.tsx` の隣に `Button.test.tsx`）。`__tests__/` のような鏡合わせのフォルダは作らない
 - `src/test/setup.ts` は Vitest のグローバル設定ファイルであり、「テストを置く場所」ではない（名前が紛らわしいだけ）
-- **現状のテスト方針**: 汎用 UI コンポーネント（`src/components/ui/`）は TDD で書く（`Button.test.tsx`。variant ごとの見た目はクラス名をアサートして確かめる）。`src/features/*` はデザイン追従のイテレーションを優先していて、現時点ではテストを置いていない（`Sidebar` は一度書いたものを意図的に削除した）。ロジックが入る `src/api/` は TDD で書き、MSW でバックエンドの応答を差し替えてテストする（`pageApi.test.ts`）
+- **現状のテスト方針**: 汎用 UI コンポーネント（`src/components/ui/`）は TDD で書く（`Button.test.tsx`。variant ごとの見た目はクラス名をアサートして確かめる）。ロジックが入る `src/api/` は TDD で書き、MSW でバックエンドの応答を差し替えてテストする（`pageApi.test.ts`）。`src/features/*` は**見た目だけのコンポーネントにはテストを置かない**（デザイン追従のイテレーションを優先。`Sidebar` は一度書いたものを意図的に削除した）が、**判断を含む hook にはテストを置く**（`useEditSection.test.ts`。バリデーションの判定と保存値がずれるバグを実際に出したため）
 
-## 現在の状況（2026-09-15 時点）
+## 現在の状況（2026-09-17 時点）
 
 コンテキストがリセットされた後に進捗をつかむための節。コードや git log を見れば分かる細部は書かず、**完了・次にやること・未決定**の3つだけを書く。
 
@@ -75,10 +76,12 @@ pnpm run build       # typecheck + 本番ビルド
 - デザイントークン（`src/index.css`）、`Button`、`Sidebar`、`PageEditor`、2カラムレイアウト（4枚のモックアップと DesignSpec の実測値に合わせ込み済み）
 - `src/api/pageApi.ts`（zod 検証、MSW でテスト済み）
 - 実 API への接続（TanStack Query は `src/features/pages/usePages.ts` に集約し、`src/App.tsx` は選択状態とレイアウトだけを持つ）。エラートースト、New page の取り消しトースト、初期表示は未選択
+- レスポンシブ対応（`md` 未満は単ペイン。分岐は `src/App.tsx` の `max-md:hidden` のみで、状態は増やしていない）
+- 第1回の採点（2026-09-17）と、その指摘への対応: 保存値の trim（`useEditSection`）、Sidebar の長いタイトルの truncate、未使用依存・トークンの削除
 
 ### 次にやること
 
-- `QUALITY_SCORE.md` による自己採点（実バックエンドでの一覧・保存・作成と取り消し・保存失敗時の動作は確認済み）
+- 修正内容を踏まえた再採点（`QUALITY_SCORE.md`）。採点役は**実装セッションとは別の、文脈を持たないエージェント**にする
 
 ### 未決定
 

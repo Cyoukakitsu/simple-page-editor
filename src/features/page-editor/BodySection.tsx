@@ -1,10 +1,6 @@
-// Page 本文の表示・編集セクション。Edit → Cancel/Save で独立した編集状態を持つ。
-import { useState } from "react";
-
-import { Button } from "../../components/ui/Button";
-import cancelIconUrl from "../../../icon/cancel.svg";
-import editIconUrl from "../../../icon/edit.svg";
-import saveIconUrl from "../../../icon/save.svg";
+// Page 本文の表示・編集セクション。編集状態と保存は useEditSection が持つ。
+import { EditActions, EditButton } from "./EditActions";
+import { useEditSection } from "./useEditSection";
 
 type BodySectionProps = {
   body: string;
@@ -12,72 +8,40 @@ type BodySectionProps = {
 };
 
 export function BodySection({ body, onSave }: BodySectionProps) {
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(body);
+  const section = useEditSection(body, onSave);
 
-  if (!editing) {
+  if (!section.editing) {
     return (
-      <div className="flex min-h-0 flex-1 gap-5">
-        <div className="min-h-0 flex-1 overflow-auto rounded-lg bg-white p-7.5">
+      <div className="flex min-h-0 flex-1 gap-2.5 md:gap-5">
+        <div className="min-h-0 flex-1 overflow-auto rounded-lg bg-white p-4 md:p-7.5">
           <p className="whitespace-pre-wrap text-body">{body}</p>
         </div>
-        <div className="flex w-22.5 shrink-0">
-          <Button
-            variant="primary"
-            icon={<img src={editIconUrl} alt="" className="h-6 w-6" />}
-            onClick={() => {
-              setDraft(body);
-              setEditing(true);
-            }}
-          >
-            Edit
-          </Button>
-        </div>
+        <EditButton onClick={section.start} />
       </div>
     );
   }
 
-  // 空白だけの本文を弾くため trim() してから長さを見る。カウンタも同じ値を出して判定と食い違わないようにする
-  const length = draft.trim().length;
-  const isValid = length >= 10 && length <= 2000;
-
   return (
-    <div className="flex min-h-0 flex-1 gap-5">
+    <div className="flex min-h-0 flex-1 gap-2.5 md:gap-5">
       <div className="flex min-h-0 flex-1 flex-col">
         <textarea
-          className="min-h-0 flex-1 resize-none rounded-lg border border-brand bg-white p-7.5 text-body"
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
+          // 見えるラベルが無いので読み上げ用の名前を付け、文字数の制限はカウンタの文と結びつける
+          aria-label="本文"
+          aria-describedby="body-counter"
+          className="min-h-0 flex-1 resize-none rounded-lg border border-brand bg-white p-4 text-body md:p-7.5"
+          value={section.draft}
+          onChange={(e) => section.setDraft(e.target.value)}
         />
-        <p className="mt-1 text-caption text-text-muted">
-          {length}/2000文字 (10〜2000文字で入力してください)
+        {/* カウンタは判定と同じ値（trim 後）を出して、食い違いが見えないようにする */}
+        <p id="body-counter" className="mt-1 text-caption text-text-muted">
+          {section.length}/2000文字 (10〜2000文字で入力してください)
         </p>
       </div>
-      <div className="flex w-22.5 shrink-0 gap-2.5">
-        <Button
-          variant="normal"
-          width="square"
-          icon={<img src={cancelIconUrl} alt="" className="h-6 w-6" />}
-          onClick={() => setEditing(false)}
-        >
-          Cancel
-        </Button>
-        <Button
-          variant="primary"
-          width="square"
-          icon={<img src={saveIconUrl} alt="" className="h-6 w-6" />}
-          disabled={!isValid}
-          onClick={async () => {
-            // 失敗時は入力を失わないよう編集中のまま残す（エラー通知は queryClient 側）
-            try {
-              await onSave(draft);
-              setEditing(false);
-            } catch {}
-          }}
-        >
-          Save
-        </Button>
-      </div>
+      <EditActions
+        canSave={section.length >= 10 && section.length <= 2000}
+        onCancel={section.cancel}
+        onSave={section.save}
+      />
     </div>
   );
 }

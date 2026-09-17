@@ -45,10 +45,15 @@ export function App() {
   };
 
   // ---- レイアウト ----
+  // md 以上は2カラム。md 未満は画面が狭いので単ペインにし、選択の有無でどちらか一方だけを出す
   return (
-    <div className="flex h-screen">
-      {/* 左カラム: Sidebar（固定幅） */}
-      <div className="w-70 shrink-0 border-r border-bg-canvas">
+    <div className="flex h-dvh">
+      {/* 左カラム: Sidebar（md 以上は固定幅） */}
+      <div
+        className={`w-full shrink-0 md:w-70 md:border-r md:border-bg-canvas ${
+          selectedPage ? "max-md:hidden" : ""
+        }`}
+      >
         <Sidebar
           pages={pages}
           selectedId={selectedId}
@@ -58,7 +63,19 @@ export function App() {
         />
       </div>
       {/* 右カラム: MainArea（選択中ページの編集エリア）とフッター */}
-      <div className="flex flex-1 flex-col px-10 pt-7.5">
+      <div
+        className={`flex flex-1 flex-col px-4 pt-5 md:px-10 md:pt-7.5 ${
+          selectedPage ? "" : "max-md:hidden"
+        }`}
+      >
+        {/* 単ペイン時に一覧へ戻る導線。md 以上は Sidebar が常に見えているので出さない */}
+        <button
+          type="button"
+          className="mb-2.5 shrink-0 self-start text-body text-brand md:hidden"
+          onClick={() => setSelectedId(null)}
+        >
+          ← 一覧へ
+        </button>
         <div className="min-h-0 flex-1">
           {selectedPage ? (
             <PageEditor
@@ -66,7 +83,8 @@ export function App() {
               onSave={(patch) => updatePage({ id: selectedPage.id, patch })}
             />
           ) : (
-            // ページ未選択の空状態（初期表示と、選択中のページを削除した直後）
+            // ページ未選択の空状態（初期表示と、選択中のページを削除した直後）。
+            // md 未満では未選択のとき右カラムごと隠れるので、これが出るのは md 以上のみ
             <div className="flex h-full items-center justify-center rounded-2xl bg-bg-canvas text-body text-text-muted">
               ページを選択してください
             </div>
