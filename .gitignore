@@ -13,6 +13,8 @@ dist-ssr
 *.local
 .env
 coverage
+test-results
+playwright-report
 
 # デザイン参照資料（バックエンドリポジトリ側に原本があるため重複管理しない）
 /Design/

@@ -21,6 +21,7 @@ NCDC のフロントエンド採用課題。対象の後端リポジトリ：[nc
 - ルーティングライブラリは使わない（画面が1つだけのため。TanStack Router を一度導入したが削除した）
 - zod（API レスポンスの実行時検証。型だけで信用せず、`src/api/` で検証してから外に出す）
 - Vitest + React Testing Library + MSW（テスト）
+- Playwright（E2E テスト。chromium のみ、実バックエンドに対して実行）
 - sonner（トースト通知）
 - 状態管理ライブラリ（Zustand 等）は意図的に不採用。TanStack Query でサーバー状態、ローカル UI 状態はコンポーネントの `useState` で十分という判断
 
@@ -33,6 +34,7 @@ pnpm run dev         # 開発サーバー
 pnpm run typecheck   # 型チェックのみ
 pnpm run test        # テスト一括実行
 pnpm run test:watch  # テスト watch
+pnpm run test:e2e    # E2E（Playwright。バックエンドが未起動なら ../recruit-frontend-backend から自動起動）
 pnpm run lint        # oxlint
 pnpm run build       # typecheck + 本番ビルド
 ```
@@ -64,10 +66,12 @@ pnpm run build       # typecheck + 本番ビルド
 
 - 課題要件で「有効なテストを 1 つ以上」が必須
 - テストファイルはソースファイルと**同じディレクトリに co-locate** する（`Button.tsx` の隣に `Button.test.tsx`）。`__tests__/` のような鏡合わせのフォルダは作らない
+- **例外: E2E は `e2e/` に置く**（1 つのソースファイルに対応しないため）。Vitest は `src/**/*.test.{ts,tsx}` だけを拾う設定にしてあるので、E2E のファイル名は `*.spec.ts` にする
 - `src/test/setup.ts` は Vitest のグローバル設定ファイルであり、「テストを置く場所」ではない（名前が紛らわしいだけ）
 - **現状のテスト方針**: 汎用 UI コンポーネント（`src/components/ui/`）は TDD で書く（`Button.test.tsx`。variant ごとの見た目はクラス名をアサートして確かめる）。ロジックが入る `src/api/` は TDD で書き、MSW でバックエンドの応答を差し替えてテストする（`pageApi.test.ts`）。`src/features/*` は**見た目だけのコンポーネントにはテストを置かない**（デザイン追従のイテレーションを優先。`Sidebar` は一度書いたものを意図的に削除した）が、**判断を含む hook にはテストを置く**（`useEditSection.test.ts`。バリデーションの判定と保存値がずれるバグを実際に出したため）
+- **E2E の方針**: INTERACTION.md の主要な状態遷移だけを少数（現在 5 本）書く。細部は単体テストに任せる。DB は開発用 `dev.sqlite` と共用なので、テストは自分で作ったページを `afterEach` で消す（タイトルは `E2E-` 接頭辞）。準備データは UI ではなく API で作る。要素はロール・アクセシブルネームで取る（`nav`/`main` ランドマークで Sidebar と MainArea の Edit ボタンを区別している）。視覚回帰・複数ブラウザ・CI 実行はしない（バックエンドがリポジトリ外のため）
 
-## 現在の状況（2026-09-17 時点）
+## 現在の状況（2026-09-27 時点）
 
 コンテキストがリセットされた後に進捗をつかむための節。コードや git log を見れば分かる細部は書かず、**完了・次にやること・未決定**の3つだけを書く。
 
@@ -78,6 +82,7 @@ pnpm run build       # typecheck + 本番ビルド
 - 実 API への接続（TanStack Query は `src/features/pages/usePages.ts` に集約し、`src/App.tsx` は選択状態とレイアウトだけを持つ）。エラートースト、New page の取り消しトースト、初期表示は未選択
 - レスポンシブ対応（`md` 未満は単ペイン。分岐は `src/App.tsx` の `max-md:hidden` のみで、状態は増やしていない）
 - 第1回の採点（2026-09-17）と、その指摘への対応: 保存値の trim（`useEditSection`）、Sidebar の長いタイトルの truncate、未使用依存・トークンの削除
+- Playwright による E2E テスト 5 本（`e2e/pages.spec.ts`）と、`src/App.tsx` の `nav`/`main` ランドマーク化
 
 ### 次にやること
 
