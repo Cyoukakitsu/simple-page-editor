@@ -49,7 +49,8 @@ export function App() {
   return (
     <div className="flex h-dvh">
       {/* 左カラム: Sidebar（md 以上は固定幅） */}
-      <div
+      <nav
+        aria-label="ページ一覧"
         className={`w-full shrink-0 md:w-70 md:border-r md:border-bg-canvas ${
           selectedPage ? "max-md:hidden" : ""
         }`}
@@ -61,9 +62,9 @@ export function App() {
           onDelete={handleDelete}
           onCreate={handleCreate}
         />
-      </div>
+      </nav>
       {/* 右カラム: MainArea（選択中ページの編集エリア）とフッター */}
-      <div
+      <main
         className={`flex flex-1 flex-col px-4 pt-5 md:px-10 md:pt-7.5 ${
           selectedPage ? "" : "max-md:hidden"
         }`}
@@ -94,7 +95,7 @@ export function App() {
           <span>Copyright © 2021 Sample</span>
           <span>運営会社</span>
         </footer>
-      </div>
+      </main>
     </div>
   );
 }

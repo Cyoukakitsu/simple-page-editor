@@ -9,6 +9,8 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
+    // e2e/ は Playwright の担当なので Vitest では拾わない
+    include: ['src/**/*.test.{ts,tsx}'],
     setupFiles: './src/test/setup.ts',
     // .env は gitignore 対象なので、テストが手元の .env の有無に左右されないよう固定する
     env: { VITE_API_BASE_URL: 'http://localhost:3000' },
